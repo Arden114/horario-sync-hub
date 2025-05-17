@@ -55,10 +55,11 @@ export default {
 				},
 				brand: {
 					blue: '#4263eb',
-					lightblue: '#3b82f6',
+					lightblue: '#33C3F0', // Added celeste
 					green: '#10b981',
-					red: '#ef4444',
+					red: '#ea384c',    // Updated to the requested red
 					purple: '#8b5cf6',
+					yellow: '#FEF7CD',  // Added soft yellow
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',

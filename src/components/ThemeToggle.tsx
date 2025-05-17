@@ -9,10 +9,16 @@ export function ThemeToggle() {
   
   return (
     <Button 
-      variant="ghost" 
+      variant="outline" 
       size="icon" 
       onClick={toggleTheme} 
       aria-label="Toggle theme"
+      className={`
+        rounded-full 
+        ${theme === 'light' 
+          ? 'bg-secondary text-white hover:bg-secondary/90' 
+          : 'bg-accent text-primary hover:bg-accent/90'}
+      `}
     >
       {theme === 'light' ? (
         <Moon className="h-5 w-5" />
