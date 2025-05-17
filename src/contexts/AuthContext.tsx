@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type Role = 'coordinador' | 'docente';
@@ -33,6 +32,14 @@ const MOCK_USERS = [
     usuario: 'jperez',
     password: 'docente123',
     especialidad: 'Matemáticas',
+    rol: 'docente' as Role
+  },
+  {
+    id: '3',
+    nombre: 'Usuario de Prueba',
+    usuario: 'test',
+    password: 'test123',
+    especialidad: 'Informática',
     rol: 'docente' as Role
   }
 ];
