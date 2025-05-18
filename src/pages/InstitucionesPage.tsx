@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
@@ -11,6 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { School, Plus, Edit } from 'lucide-react';
 import { toast } from 'sonner';
+import { FileImportExport } from '@/components/FileImportExport';
+import { DeleteButton } from '@/components/DeleteButton';
 
 // Mock de datos
 const mockInstituciones = [
@@ -83,7 +84,7 @@ const InstitucionesPage = () => {
     selectedCiclo && materia.cicloId === selectedCiclo.id
   );
   
-  // Abrir diálogo para crear/editar institución
+  // Handlers para los diálogos
   const handleInstitucionDialog = (institucion?: any) => {
     if (institucion) {
       setCurrentItem({...institucion});
@@ -95,7 +96,6 @@ const InstitucionesPage = () => {
     setOpenInstitucionDialog(true);
   };
   
-  // Abrir diálogo para crear/editar aula
   const handleAulaDialog = (aula?: any) => {
     if (!selectedInstitucion) {
       toast.error('Debe seleccionar una institución primero');
@@ -118,7 +118,6 @@ const InstitucionesPage = () => {
     setOpenAulaDialog(true);
   };
   
-  // Abrir diálogo para crear/editar carrera
   const handleCarreraDialog = (carrera?: any) => {
     if (!selectedInstitucion) {
       toast.error('Debe seleccionar una institución primero');
@@ -140,7 +139,6 @@ const InstitucionesPage = () => {
     setOpenCarreraDialog(true);
   };
   
-  // Abrir diálogo para crear/editar ciclo
   const handleCicloDialog = (ciclo?: any) => {
     if (!selectedCarrera) {
       toast.error('Debe seleccionar una carrera primero');
@@ -162,7 +160,6 @@ const InstitucionesPage = () => {
     setOpenCicloDialog(true);
   };
   
-  // Abrir diálogo para crear/editar materia
   const handleMateriaDialog = (materia?: any) => {
     if (!selectedCiclo) {
       toast.error('Debe seleccionar un ciclo primero');
@@ -261,6 +258,139 @@ const InstitucionesPage = () => {
     setOpenMateriaDialog(false);
   };
   
+  // Nuevas funciones para eliminar 
+  const handleDeleteInstitucion = (institucion: any) => {
+    setInstituciones(instituciones.filter(i => i.id !== institucion.id));
+    // Si la institución eliminada estaba seleccionada, la deseleccionamos
+    if (selectedInstitucion && selectedInstitucion.id === institucion.id) {
+      setSelectedInstitucion(null);
+      setSelectedCarrera(null);
+      setSelectedCiclo(null);
+    }
+    toast.success(`Institución ${institucion.nombre} eliminada correctamente`);
+  };
+  
+  const handleDeleteAula = (aula: any) => {
+    setAulas(aulas.filter(a => a.id !== aula.id));
+    toast.success(`Aula ${aula.nombre} eliminada correctamente`);
+  };
+  
+  const handleDeleteCarrera = (carrera: any) => {
+    setCarreras(carreras.filter(c => c.id !== carrera.id));
+    // Si la carrera eliminada estaba seleccionada, la deseleccionamos
+    if (selectedCarrera && selectedCarrera.id === carrera.id) {
+      setSelectedCarrera(null);
+      setSelectedCiclo(null);
+    }
+    toast.success(`Carrera ${carrera.nombre} eliminada correctamente`);
+  };
+  
+  const handleDeleteCiclo = (ciclo: any) => {
+    setCiclos(ciclos.filter(c => c.id !== ciclo.id));
+    // Si el ciclo eliminado estaba seleccionado, lo deseleccionamos
+    if (selectedCiclo && selectedCiclo.id === ciclo.id) {
+      setSelectedCiclo(null);
+    }
+    toast.success(`Ciclo ${ciclo.nombre} eliminado correctamente`);
+  };
+  
+  const handleDeleteMateria = (materia: any) => {
+    setMaterias(materias.filter(m => m.id !== materia.id));
+    toast.success(`Materia ${materia.nombre} eliminada correctamente`);
+  };
+  
+  // Funciones para la importación y exportación
+  const handleImportAulas = (data: any[]) => {
+    if (!selectedInstitucion) {
+      toast.error('Debe seleccionar una institución para importar aulas');
+      return;
+    }
+    
+    // Añadimos el institucionId a cada aula importada
+    const aulasConInstitucion = data.map(aula => ({
+      ...aula,
+      institucionId: selectedInstitucion.id
+    }));
+    
+    setAulas([...aulas, ...aulasConInstitucion]);
+  };
+  
+  const handleExportAulas = () => {
+    if (!selectedInstitucion) {
+      toast.error('Debe seleccionar una institución para exportar aulas');
+      return [];
+    }
+    
+    return filteredAulas;
+  };
+  
+  // Función para eliminar todas las aulas de una institución
+  const handleDeleteAllAulas = () => {
+    if (!selectedInstitucion) {
+      toast.error('Debe seleccionar una institución primero');
+      return;
+    }
+    
+    setAulas(aulas.filter(aula => aula.institucionId !== selectedInstitucion.id));
+    toast.success(`Todas las aulas de ${selectedInstitucion.nombre} han sido eliminadas`);
+  };
+  
+  // Función para eliminar todas las carreras de una institución
+  const handleDeleteAllCarreras = () => {
+    if (!selectedInstitucion) {
+      toast.error('Debe seleccionar una institución primero');
+      return;
+    }
+    
+    // Eliminar carreras
+    const carrerasIds = filteredCarreras.map(c => c.id);
+    setCarreras(carreras.filter(carrera => carrera.institucionId !== selectedInstitucion.id));
+    
+    // Eliminar ciclos asociados a esas carreras
+    const ciclosIds = ciclos.filter(c => carrerasIds.includes(c.carreraId)).map(c => c.id);
+    setCiclos(ciclos.filter(ciclo => !carrerasIds.includes(ciclo.carreraId)));
+    
+    // Eliminar materias asociadas a esos ciclos
+    setMaterias(materias.filter(materia => !ciclosIds.includes(materia.cicloId)));
+    
+    // Reset selecciones
+    setSelectedCarrera(null);
+    setSelectedCiclo(null);
+    
+    toast.success(`Todas las carreras de ${selectedInstitucion.nombre} y sus datos asociados han sido eliminados`);
+  };
+  
+  // Función para eliminar todos los ciclos de una carrera
+  const handleDeleteAllCiclos = () => {
+    if (!selectedCarrera) {
+      toast.error('Debe seleccionar una carrera primero');
+      return;
+    }
+    
+    // Eliminar ciclos
+    const ciclosIds = filteredCiclos.map(c => c.id);
+    setCiclos(ciclos.filter(ciclo => ciclo.carreraId !== selectedCarrera.id));
+    
+    // Eliminar materias asociadas a esos ciclos
+    setMaterias(materias.filter(materia => !ciclosIds.includes(materia.cicloId)));
+    
+    // Reset selección
+    setSelectedCiclo(null);
+    
+    toast.success(`Todos los ciclos de ${selectedCarrera.nombre} y sus materias han sido eliminados`);
+  };
+  
+  // Función para eliminar todas las materias de un ciclo
+  const handleDeleteAllMaterias = () => {
+    if (!selectedCiclo) {
+      toast.error('Debe seleccionar un ciclo primero');
+      return;
+    }
+    
+    setMaterias(materias.filter(materia => materia.cicloId !== selectedCiclo.id));
+    toast.success(`Todas las materias de ${selectedCiclo.nombre} han sido eliminadas`);
+  };
+  
   return (
     <div className="grid min-h-screen w-full lg:grid-cols-[auto_1fr]">
       <Sidebar />
@@ -313,6 +443,10 @@ const InstitucionesPage = () => {
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
+                      <DeleteButton 
+                        onDelete={() => handleDeleteInstitucion(institucion)} 
+                        entityName="Institución"
+                      />
                     </div>
                   </CardContent>
                 </Card>
@@ -334,10 +468,22 @@ const InstitucionesPage = () => {
                   <TabsContent value="aulas" className="space-y-4">
                     <div className="flex items-center justify-between">
                       <h3 className="text-xl font-medium">Aulas</h3>
-                      <Button onClick={() => handleAulaDialog()}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Nueva Aula
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <FileImportExport
+                          onImport={handleImportAulas}
+                          onExport={handleExportAulas}
+                          entityName="Aulas"
+                        />
+                        <Button onClick={() => handleAulaDialog()}>
+                          <Plus className="mr-2 h-4 w-4" />
+                          Nueva Aula
+                        </Button>
+                        <DeleteButton 
+                          onDelete={handleDeleteAllAulas} 
+                          entityName="Aulas" 
+                          disabled={filteredAulas.length === 0}
+                        />
+                      </div>
                     </div>
                     
                     <div className="rounded-lg border">
@@ -360,14 +506,20 @@ const InstitucionesPage = () => {
                                 <TableCell>{aula.tipo}</TableCell>
                                 <TableCell>{aula.capacidad}</TableCell>
                                 <TableCell>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    onClick={() => handleAulaDialog(aula)}
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                    <span className="sr-only">Editar</span>
-                                  </Button>
+                                  <div className="flex items-center gap-2">
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => handleAulaDialog(aula)}
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                      <span className="sr-only">Editar</span>
+                                    </Button>
+                                    <DeleteButton 
+                                      onDelete={() => handleDeleteAula(aula)} 
+                                      entityName="Aula"
+                                    />
+                                  </div>
                                 </TableCell>
                               </TableRow>
                             ))
@@ -386,10 +538,17 @@ const InstitucionesPage = () => {
                   <TabsContent value="carreras" className="space-y-4">
                     <div className="flex items-center justify-between">
                       <h3 className="text-xl font-medium">Carreras</h3>
-                      <Button onClick={() => handleCarreraDialog()}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Nueva Carrera
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button onClick={() => handleCarreraDialog()}>
+                          <Plus className="mr-2 h-4 w-4" />
+                          Nueva Carrera
+                        </Button>
+                        <DeleteButton 
+                          onDelete={handleDeleteAllCarreras} 
+                          entityName="Carreras" 
+                          disabled={filteredCarreras.length === 0}
+                        />
+                      </div>
                     </div>
                     
                     <div className="rounded-lg border">
@@ -433,6 +592,10 @@ const InstitucionesPage = () => {
                                       <Edit className="h-4 w-4" />
                                       <span className="sr-only">Editar</span>
                                     </Button>
+                                    <DeleteButton 
+                                      onDelete={() => handleDeleteCarrera(carrera)} 
+                                      entityName="Carrera"
+                                    />
                                   </div>
                                 </TableCell>
                               </TableRow>
@@ -454,10 +617,17 @@ const InstitucionesPage = () => {
                           <h3 className="text-xl font-medium">
                             Ciclos de {selectedCarrera.nombre}
                           </h3>
-                          <Button onClick={() => handleCicloDialog()}>
-                            <Plus className="mr-2 h-4 w-4" />
-                            Nuevo Ciclo
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <Button onClick={() => handleCicloDialog()}>
+                              <Plus className="mr-2 h-4 w-4" />
+                              Nuevo Ciclo
+                            </Button>
+                            <DeleteButton 
+                              onDelete={handleDeleteAllCiclos} 
+                              entityName="Ciclos" 
+                              disabled={filteredCiclos.length === 0}
+                            />
+                          </div>
                         </div>
                         
                         <div className="rounded-lg border">
@@ -501,6 +671,10 @@ const InstitucionesPage = () => {
                                           <Edit className="h-4 w-4" />
                                           <span className="sr-only">Editar</span>
                                         </Button>
+                                        <DeleteButton 
+                                          onDelete={() => handleDeleteCiclo(ciclo)} 
+                                          entityName="Ciclo"
+                                        />
                                       </div>
                                     </TableCell>
                                   </TableRow>
@@ -522,10 +696,17 @@ const InstitucionesPage = () => {
                               <h3 className="text-xl font-medium">
                                 Materias de {selectedCiclo.nombre} - Sección {selectedCiclo.seccion}
                               </h3>
-                              <Button onClick={() => handleMateriaDialog()}>
-                                <Plus className="mr-2 h-4 w-4" />
-                                Nueva Materia
-                              </Button>
+                              <div className="flex items-center gap-2">
+                                <Button onClick={() => handleMateriaDialog()}>
+                                  <Plus className="mr-2 h-4 w-4" />
+                                  Nueva Materia
+                                </Button>
+                                <DeleteButton 
+                                  onDelete={handleDeleteAllMaterias} 
+                                  entityName="Materias" 
+                                  disabled={filteredMaterias.length === 0}
+                                />
+                              </div>
                             </div>
                             
                             <div className="rounded-lg border">
@@ -550,14 +731,20 @@ const InstitucionesPage = () => {
                                         <TableCell>{materia.tipo}</TableCell>
                                         <TableCell>{materia.horasTotales}</TableCell>
                                         <TableCell>
-                                          <Button 
-                                            variant="ghost" 
-                                            size="sm"
-                                            onClick={() => handleMateriaDialog(materia)}
-                                          >
-                                            <Edit className="h-4 w-4" />
-                                            <span className="sr-only">Editar</span>
-                                          </Button>
+                                          <div className="flex items-center gap-2">
+                                            <Button 
+                                              variant="ghost" 
+                                              size="sm"
+                                              onClick={() => handleMateriaDialog(materia)}
+                                            >
+                                              <Edit className="h-4 w-4" />
+                                              <span className="sr-only">Editar</span>
+                                            </Button>
+                                            <DeleteButton 
+                                              onDelete={() => handleDeleteMateria(materia)} 
+                                              entityName="Materia"
+                                            />
+                                          </div>
                                         </TableCell>
                                       </TableRow>
                                     ))
@@ -581,7 +768,7 @@ const InstitucionesPage = () => {
             )}
           </div>
           
-          {/* Diálogo para crear/editar institución */}
+          {/* Diálogos para crear/editar entidades */}
           <Dialog open={openInstitucionDialog} onOpenChange={setOpenInstitucionDialog}>
             <DialogContent>
               <DialogHeader>
@@ -635,7 +822,6 @@ const InstitucionesPage = () => {
             </DialogContent>
           </Dialog>
           
-          {/* Diálogo para crear/editar aula */}
           <Dialog open={openAulaDialog} onOpenChange={setOpenAulaDialog}>
             <DialogContent>
               <DialogHeader>
@@ -691,7 +877,6 @@ const InstitucionesPage = () => {
             </DialogContent>
           </Dialog>
           
-          {/* Diálogo para crear/editar carrera */}
           <Dialog open={openCarreraDialog} onOpenChange={setOpenCarreraDialog}>
             <DialogContent>
               <DialogHeader>
@@ -736,7 +921,6 @@ const InstitucionesPage = () => {
             </DialogContent>
           </Dialog>
           
-          {/* Diálogo para crear/editar ciclo */}
           <Dialog open={openCicloDialog} onOpenChange={setOpenCicloDialog}>
             <DialogContent>
               <DialogHeader>
@@ -783,7 +967,6 @@ const InstitucionesPage = () => {
             </DialogContent>
           </Dialog>
           
-          {/* Diálogo para crear/editar materia */}
           <Dialog open={openMateriaDialog} onOpenChange={setOpenMateriaDialog}>
             <DialogContent>
               <DialogHeader>

@@ -37,7 +37,7 @@ export function Sidebar() {
   ];
 
   return (
-    <aside className="hidden border-r bg-background lg:block lg:w-64">
+    <aside className="hidden border-r bg-background sticky top-0 h-screen lg:block lg:w-64">
       <div className="flex h-full max-h-screen flex-col gap-2">
         <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
           <span className="font-semibold">

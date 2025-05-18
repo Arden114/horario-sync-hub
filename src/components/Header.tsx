@@ -25,7 +25,7 @@ export function Header() {
         <div className="flex items-center gap-6 md:gap-8 lg:gap-10">
           <Link to="/" className="flex items-center gap-2">
             <span className="hidden text-xl font-bold sm:inline-block">
-              Horario Sync Hub
+              La Pontificia - Sistema de Horarios
             </span>
           </Link>
         </div>
