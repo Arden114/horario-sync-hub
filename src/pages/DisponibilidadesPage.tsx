@@ -3,90 +3,67 @@ import React, { useState } from 'react';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
-import { Calendar, Download, Upload } from 'lucide-react';
+import { Download, Save, Upload, Search } from 'lucide-react';
 import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
 
-// Mock de datos de disponibilidad
-const mockDisponibilidad = {
-  lunes: [
-    { id: '1', inicio: '07:00', fin: '09:00', disponible: true },
-    { id: '2', inicio: '09:00', fin: '11:00', disponible: false },
-    { id: '3', inicio: '11:00', fin: '13:00', disponible: true },
-    { id: '4', inicio: '13:00', fin: '15:00', disponible: false },
-    { id: '5', inicio: '15:00', fin: '17:00', disponible: true },
-    { id: '6', inicio: '17:00', fin: '19:00', disponible: true },
-    { id: '7', inicio: '19:00', fin: '21:00', disponible: false },
-  ],
-  martes: [
-    { id: '8', inicio: '07:00', fin: '09:00', disponible: false },
-    { id: '9', inicio: '09:00', fin: '11:00', disponible: true },
-    { id: '10', inicio: '11:00', fin: '13:00', disponible: true },
-    { id: '11', inicio: '13:00', fin: '15:00', disponible: false },
-    { id: '12', inicio: '15:00', fin: '17:00', disponible: false },
-    { id: '13', inicio: '17:00', fin: '19:00', disponible: true },
-    { id: '14', inicio: '19:00', fin: '21:00', disponible: true },
-  ],
-  miercoles: [
-    { id: '15', inicio: '07:00', fin: '09:00', disponible: true },
-    { id: '16', inicio: '09:00', fin: '11:00', disponible: true },
-    { id: '17', inicio: '11:00', fin: '13:00', disponible: false },
-    { id: '18', inicio: '13:00', fin: '15:00', disponible: false },
-    { id: '19', inicio: '15:00', fin: '17:00', disponible: true },
-    { id: '20', inicio: '17:00', fin: '19:00', disponible: false },
-    { id: '21', inicio: '19:00', fin: '21:00', disponible: true },
-  ],
-  jueves: [
-    { id: '22', inicio: '07:00', fin: '09:00', disponible: false },
-    { id: '23', inicio: '09:00', fin: '11:00', disponible: false },
-    { id: '24', inicio: '11:00', fin: '13:00', disponible: true },
-    { id: '25', inicio: '13:00', fin: '15:00', disponible: true },
-    { id: '26', inicio: '15:00', fin: '17:00', disponible: false },
-    { id: '27', inicio: '17:00', fin: '19:00', disponible: true },
-    { id: '28', inicio: '19:00', fin: '21:00', disponible: false },
-  ],
-  viernes: [
-    { id: '29', inicio: '07:00', fin: '09:00', disponible: true },
-    { id: '30', inicio: '09:00', fin: '11:00', disponible: true },
-    { id: '31', inicio: '11:00', fin: '13:00', disponible: true },
-    { id: '32', inicio: '13:00', fin: '15:00', disponible: false },
-    { id: '33', inicio: '15:00', fin: '17:00', disponible: true },
-    { id: '34', inicio: '17:00', fin: '19:00', disponible: false },
-    { id: '35', inicio: '19:00', fin: '21:00', disponible: false },
-  ],
-  sabado: [
-    { id: '36', inicio: '07:00', fin: '09:00', disponible: false },
-    { id: '37', inicio: '09:00', fin: '11:00', disponible: true },
-    { id: '38', inicio: '11:00', fin: '13:00', disponible: false },
-    { id: '39', inicio: '13:00', fin: '15:00', disponible: true },
-    { id: '40', inicio: '15:00', fin: '17:00', disponible: false },
-    { id: '41', inicio: '17:00', fin: '19:00', disponible: true },
-    { id: '42', inicio: '19:00', fin: '21:00', disponible: false },
-  ]
+// Mock de datos de disponibilidad con horarios de 7 AM a 8 PM
+const generarHorariosDisponibilidad = () => {
+  const dias = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'];
+  const horas = [];
+  
+  // Generar horas de 7 AM a 8 PM
+  for (let hora = 7; hora <= 20; hora++) {
+    const horaFormateada = hora < 12 ? `${hora}:00 AM` : `${hora === 12 ? 12 : hora - 12}:00 PM`;
+    horas.push(horaFormateada);
+  }
+  
+  // Generar estructura de datos para cada día y hora
+  let id = 1;
+  const disponibilidad = {};
+  
+  dias.forEach(dia => {
+    disponibilidad[dia] = horas.map((hora) => {
+      // Generar disponibilidad aleatoria para demostración
+      const disponible = Math.random() > 0.5;
+      return { id: `${id++}`, hora, disponible };
+    });
+  });
+  
+  return { dias, horas, disponibilidad };
 };
 
 // Mock de datos de docentes
 const mockDocentes = [
-  { id: '1', nombre: 'Juan Pérez', especialidad: 'Matemáticas' },
-  { id: '2', nombre: 'María González', especialidad: 'Física' },
-  { id: '3', nombre: 'Carlos Rodríguez', especialidad: 'Programación' }
+  { id: '1', nombre: 'Juan Pérez', especialidad: 'Matemáticas', activo: true },
+  { id: '2', nombre: 'Ana Gómez', especialidad: 'Programación', activo: true },
+  { id: '3', nombre: 'Carlos Ruiz', especialidad: 'Sistemas', activo: true },
+  { id: '4', nombre: 'Lucía Martínez', especialidad: 'Base de Datos', activo: true },
+  { id: '5', nombre: 'Roberto Torres', especialidad: 'Redes', activo: false }
 ];
 
 const DisponibilidadesPage = () => {
   const { user } = useAuth();
-  const [disponibilidad, setDisponibilidad] = useState(mockDisponibilidad);
-  const [docentes, setDocentes] = useState(mockDocentes);
-  const [selectedDocente, setSelectedDocente] = useState<string | null>(null);
+  const { dias, horas, disponibilidad: initialDisponibilidad } = generarHorariosDisponibilidad();
+  const [disponibilidad, setDisponibilidad] = useState(initialDisponibilidad);
+  const [busquedaDocente, setBusquedaDocente] = useState("");
+  const [selectedDocente, setSelectedDocente] = useState(mockDocentes[0]);
   
   const isCoordinador = user?.rol === 'coordinador';
   
+  // Filtrar docentes según la búsqueda
+  const docentesFiltrados = mockDocentes.filter(docente => 
+    docente.nombre.toLowerCase().includes(busquedaDocente.toLowerCase()) ||
+    docente.especialidad.toLowerCase().includes(busquedaDocente.toLowerCase())
+  );
+  
   // Togglear disponibilidad
-  const toggleDisponibilidad = (dia: string, id: string) => {
+  const toggleDisponibilidad = (dia, id) => {
     setDisponibilidad(prev => ({
       ...prev,
-      [dia]: prev[dia as keyof typeof prev].map(bloque => 
+      [dia]: prev[dia].map(bloque => 
         bloque.id === id ? { ...bloque, disponible: !bloque.disponible } : bloque
       )
     }));
@@ -104,149 +81,142 @@ const DisponibilidadesPage = () => {
   
   // Importar desde Excel
   const handleImportar = () => {
-    // Simular carga de archivo
     toast.success('Disponibilidad importada desde Excel correctamente');
   };
 
-  // Render días de la semana
-  const renderDias = () => {
-    const dias = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
-    const horasGuia = [7, 9, 11, 13, 15, 17, 19, 21];
-    
-    return (
-      <div className="mt-4 grid grid-cols-7 gap-4">
-        {/* Columna de horas */}
-        <div className="pt-6">
-          {horasGuia.map((hora, index) => (
-            <div key={index} className="h-12 flex items-center justify-end pr-2 text-sm font-medium">
-              {hora}:00
-            </div>
-          ))}
-        </div>
-        
-        {/* Columnas para cada día */}
-        {dias.map(dia => (
-          <div key={dia} className="flex flex-col">
-            <div className="h-6 text-center font-medium capitalize">{dia}</div>
-            <div className="flex flex-col gap-px">
-              {disponibilidad[dia as keyof typeof disponibilidad].map(bloque => (
-                <div
-                  key={bloque.id}
-                  className={`
-                    h-12 rounded-md border border-border p-1 text-xs cursor-pointer transition-colors
-                    ${bloque.disponible 
-                      ? 'bg-brand-green/20 hover:bg-brand-green/30' 
-                      : 'bg-muted hover:bg-muted/80'
-                    }
-                  `}
-                  onClick={() => toggleDisponibilidad(dia, bloque.id)}
-                >
-                  {bloque.inicio} - {bloque.fin}
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
-  
   return (
     <div className="grid min-h-screen w-full lg:grid-cols-[auto_1fr]">
       <Sidebar />
       <div className="flex flex-col">
         <Header />
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-background">
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h1 className="text-3xl font-bold">
-                {isCoordinador ? 'Disponibilidades Docentes' : 'Mi Disponibilidad'}
-              </h1>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleImportar}
-                >
-                  <Upload className="mr-2 h-4 w-4" />
-                  Importar Excel
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleExportar}
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Exportar Excel
-                </Button>
-                <Button onClick={handleGuardar}>Guardar</Button>
-              </div>
-            </div>
+            <h1 className="text-3xl font-bold">Disponibilidades</h1>
             
-            {isCoordinador && (
-              <Card className="mb-6">
-                <CardHeader className="pb-3">
-                  <CardTitle>Seleccionar Docente</CardTitle>
-                  <CardDescription>
-                    Elige un docente para ver o editar su disponibilidad
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Select
-                    onValueChange={(value) => setSelectedDocente(value)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Seleccione un docente" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {docentes.map(docente => (
-                        <SelectItem key={docente.id} value={docente.id}>
-                          {docente.nombre} - {docente.especialidad}
-                        </SelectItem>
+            <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
+              {/* Panel lateral de docentes */}
+              {isCoordinador && (
+                <Card className="bg-background shadow-md">
+                  <CardContent className="p-4">
+                    <h2 className="text-xl font-bold mb-4">Docentes</h2>
+                    <div className="relative mb-4">
+                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Buscar docente..."
+                        className="pl-8"
+                        value={busquedaDocente}
+                        onChange={(e) => setBusquedaDocente(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      {docentesFiltrados.map((docente) => (
+                        <div
+                          key={docente.id}
+                          className={`p-3 rounded-md cursor-pointer transition-colors flex items-center justify-between ${
+                            selectedDocente.id === docente.id
+                              ? 'bg-brand-lightblue text-white'
+                              : 'hover:bg-muted'
+                          }`}
+                          onClick={() => setSelectedDocente(docente)}
+                        >
+                          <div>
+                            <div className="font-medium">{docente.nombre}</div>
+                            <div className="text-sm text-muted-foreground">{docente.especialidad}</div>
+                          </div>
+                          <div className={`h-2 w-2 rounded-full ${docente.activo ? 'bg-brand-green' : 'bg-brand-red'}`}></div>
+                        </div>
                       ))}
-                    </SelectContent>
-                  </Select>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {/* Panel principal de disponibilidad */}
+              <Card className="bg-background shadow-md">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-bold">
+                      {isCoordinador
+                        ? `Disponibilidad de ${selectedDocente.nombre}`
+                        : 'Mi Disponibilidad'
+                      }
+                    </h2>
+                    <div className="flex items-center gap-2">
+                      {isCoordinador && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleImportar}
+                            className="text-xs"
+                          >
+                            <Upload className="mr-2 h-4 w-4" />
+                            Importar
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleExportar}
+                            className="text-xs"
+                          >
+                            <Download className="mr-2 h-4 w-4" />
+                            Exportar
+                          </Button>
+                        </>
+                      )}
+                      <Button onClick={handleGuardar} size="sm" className="bg-brand-lightblue hover:bg-brand-lightblue/90">
+                        <Save className="mr-2 h-4 w-4" />
+                        Guardar
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="overflow-x-auto">
+                    <div className="grid grid-cols-[100px_1fr_1fr_1fr_1fr_1fr] gap-2 min-w-[700px]">
+                      {/* Encabezados de días */}
+                      <div className="font-medium text-center py-2"></div>
+                      {dias.map((dia, index) => (
+                        <div key={index} className="font-medium text-center py-2 capitalize">
+                          {dia}
+                        </div>
+                      ))}
+                      
+                      {/* Filas de horas */}
+                      {horas.map((hora, horaIndex) => (
+                        <React.Fragment key={hora}>
+                          <div className="text-sm text-right pr-2 py-2">{hora}</div>
+                          
+                          {dias.map((dia, diaIndex) => {
+                            const bloque = disponibilidad[dia][horaIndex];
+                            return (
+                              <div 
+                                key={`${dia}-${hora}`}
+                                className={`
+                                  rounded-md border transition-colors cursor-pointer flex items-center justify-center
+                                  ${bloque.disponible 
+                                    ? 'bg-brand-lightblue/80 hover:bg-brand-lightblue border-brand-lightblue' 
+                                    : 'bg-transparent hover:bg-muted/30 border-muted'
+                                  }
+                                `}
+                                onClick={() => toggleDisponibilidad(dia, bloque.id)}
+                              >
+                                <div className="h-5 w-5">
+                                  {bloque.disponible && <div className="h-full w-full flex items-center justify-center text-white">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                                      <circle cx="12" cy="12" r="10"></circle>
+                                      <polyline points="12 6 12 12 16 14"></polyline>
+                                    </svg>
+                                  </div>}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </React.Fragment>
+                      ))}
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
-            )}
-            
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center">
-                  <Calendar className="mr-2 h-5 w-5" />
-                  {isCoordinador 
-                    ? selectedDocente 
-                      ? `Disponibilidad de ${docentes.find(d => d.id === selectedDocente)?.nombre}` 
-                      : 'Seleccione un docente'
-                    : 'Mi Disponibilidad'
-                  }
-                </CardTitle>
-                <CardDescription>
-                  Haga clic en un bloque de tiempo para marcarlo como disponible o no disponible
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {(!isCoordinador || (isCoordinador && selectedDocente)) ? (
-                  renderDias()
-                ) : (
-                  <div className="flex h-40 items-center justify-center text-muted-foreground">
-                    Seleccione un docente para ver su disponibilidad
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-            
-            <div className="mt-4">
-              <div className="text-sm text-muted-foreground">
-                <span className="mr-4">
-                  <span className="inline-block h-3 w-3 rounded-full bg-brand-green/20 mr-1"></span>
-                  Disponible
-                </span>
-                <span>
-                  <span className="inline-block h-3 w-3 rounded-full bg-muted mr-1"></span>
-                  No disponible
-                </span>
-              </div>
             </div>
           </div>
         </main>
