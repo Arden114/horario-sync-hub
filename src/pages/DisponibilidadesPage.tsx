@@ -8,10 +8,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Download, Save, Upload, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
 
 // Mock de datos de disponibilidad con horarios de 7 AM a 8 PM
 const generarHorariosDisponibilidad = () => {
-  const dias = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'];
+  const dias = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
   const horas = [];
   
   // Generar horas de 7 AM a 8 PM
@@ -94,7 +96,7 @@ const DisponibilidadesPage = () => {
             <h1 className="text-3xl font-bold">Disponibilidades</h1>
             
             <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
-              {/* Panel lateral de docentes */}
+              {/* Panel lateral de docentes - Solo visible para coordinadores */}
               {isCoordinador && (
                 <Card className="bg-background shadow-md">
                   <CardContent className="p-4">
@@ -131,8 +133,8 @@ const DisponibilidadesPage = () => {
                 </Card>
               )}
               
-              {/* Panel principal de disponibilidad */}
-              <Card className="bg-background shadow-md">
+              {/* Panel principal de disponibilidad - Siempre visible, ocupa todo el ancho para docentes */}
+              <Card className={`bg-background shadow-md ${!isCoordinador ? 'col-span-full' : ''}`}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-bold">
@@ -172,48 +174,51 @@ const DisponibilidadesPage = () => {
                   </div>
                   
                   <div className="overflow-x-auto">
-                    <div className="grid grid-cols-[100px_1fr_1fr_1fr_1fr_1fr] gap-2 min-w-[700px]">
-                      {/* Encabezados de días */}
-                      <div className="font-medium text-center py-2"></div>
-                      {dias.map((dia, index) => (
-                        <div key={index} className="font-medium text-center py-2 capitalize">
-                          {dia}
-                        </div>
-                      ))}
-                      
-                      {/* Filas de horas */}
-                      {horas.map((hora, horaIndex) => (
-                        <React.Fragment key={hora}>
-                          <div className="text-sm text-right pr-2 py-2">{hora}</div>
-                          
-                          {dias.map((dia, diaIndex) => {
-                            const bloque = disponibilidad[dia][horaIndex];
-                            return (
-                              <div 
-                                key={`${dia}-${hora}`}
-                                className={`
-                                  rounded-md border transition-colors cursor-pointer flex items-center justify-center
-                                  ${bloque.disponible 
-                                    ? 'bg-brand-lightblue/80 hover:bg-brand-lightblue border-brand-lightblue' 
-                                    : 'bg-transparent hover:bg-muted/30 border-muted'
-                                  }
-                                `}
-                                onClick={() => toggleDisponibilidad(dia, bloque.id)}
-                              >
-                                <div className="h-5 w-5">
-                                  {bloque.disponible && <div className="h-full w-full flex items-center justify-center text-white">
-                                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                                      <circle cx="12" cy="12" r="10"></circle>
-                                      <polyline points="12 6 12 12 16 14"></polyline>
-                                    </svg>
-                                  </div>}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </React.Fragment>
-                      ))}
-                    </div>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[100px]">Hora</TableHead>
+                          {dias.map((dia) => (
+                            <TableHead key={dia} className="text-center capitalize">
+                              {dia}
+                            </TableHead>
+                          ))}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {horas.map((hora) => (
+                          <TableRow key={hora}>
+                            <TableCell className="font-medium">{hora}</TableCell>
+                            {dias.map((dia) => {
+                              const bloque = disponibilidad[dia].find(b => b.hora === hora);
+                              return (
+                                <TableCell key={`${dia}-${hora}`} className="text-center">
+                                  <div className="flex justify-center">
+                                    <div 
+                                      className={`
+                                        w-6 h-6 rounded-md cursor-pointer flex items-center justify-center
+                                        ${bloque?.disponible 
+                                          ? 'bg-brand-lightblue text-white' 
+                                          : 'border border-muted-foreground/20'
+                                        }
+                                      `}
+                                      onClick={() => toggleDisponibilidad(dia, bloque?.id)}
+                                    >
+                                      {bloque?.disponible && (
+                                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                                          <circle cx="12" cy="12" r="10"></circle>
+                                          <polyline points="12 6 12 12 16 14"></polyline>
+                                        </svg>
+                                      )}
+                                    </div>
+                                  </div>
+                                </TableCell>
+                              );
+                            })}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
                 </CardContent>
               </Card>
