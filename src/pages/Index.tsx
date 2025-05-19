@@ -1,9 +1,9 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import Login from '@/components/Login';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
+import { Navigate } from 'react-router-dom';
 import { CoordinadorDashboard } from '@/components/dashboard/CoordinadorDashboard';
 import { DocenteDashboard } from '@/components/dashboard/DocenteDashboard';
 
@@ -11,7 +11,7 @@ const Index = () => {
   const { user, isAuthenticated } = useAuth();
   
   if (!isAuthenticated) {
-    return <Login />;
+    return <Navigate to="/login" />;
   }
 
   return (

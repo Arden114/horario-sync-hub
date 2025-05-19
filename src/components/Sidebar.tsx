@@ -40,7 +40,7 @@ export function Sidebar() {
     <aside className="hidden border-r bg-background sticky top-0 h-screen lg:block lg:w-64">
       <div className="flex h-full max-h-screen flex-col gap-2">
         <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-          <span className="font-semibold">
+          <span className="font-semibold text-cyan-500">
             {user?.rol === 'coordinador' ? 'Coordinador' : 'Docente'}
           </span>
         </div>
@@ -52,7 +52,7 @@ export function Sidebar() {
               className={({ isActive }) =>
                 cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-foreground",
-                  isActive && "bg-accent text-accent-foreground"
+                  isActive ? "bg-yellow-100 text-red-600 dark:bg-yellow-900/50" : ""
                 )
               }
             >

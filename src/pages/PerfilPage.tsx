@@ -4,12 +4,8 @@ import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 
 const PerfilPage = () => {
   const { user } = useAuth();
@@ -27,19 +23,19 @@ const PerfilPage = () => {
               <CardHeader>
                 <CardTitle>Información Personal</CardTitle>
                 <CardDescription>
-                  Visualiza y actualiza tu información personal
+                  Información de tu cuenta en el sistema
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-6 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="nombre">Nombre Completo</Label>
+                    <Label htmlFor="nombre">Nombre</Label>
                     <Input id="nombre" value={user?.nombre} readOnly />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="usuario">Nombre de Usuario</Label>
-                    <Input id="usuario" value={user?.usuario} readOnly />
+                    <Label htmlFor="correo">Correo Electrónico</Label>
+                    <Input id="correo" value={user?.correo} readOnly />
                   </div>
                   
                   <div className="space-y-2">
@@ -51,92 +47,13 @@ const PerfilPage = () => {
                     />
                   </div>
                   
-                  {user?.rol === 'docente' && (
-                    <div className="space-y-2">
-                      <Label htmlFor="especialidad">Especialidad</Label>
-                      <Input id="especialidad" value={user?.especialidad || 'No especificada'} readOnly />
-                    </div>
-                  )}
+                  <div className="space-y-2">
+                    <Label htmlFor="id">ID</Label>
+                    <Input id="id" value={user?.id} readOnly />
+                  </div>
                 </div>
               </CardContent>
             </Card>
-
-            {user?.rol === 'coordinador' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Gestión de Períodos Académicos</CardTitle>
-                  <CardDescription>
-                    Administra los períodos académicos del sistema
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Tabs defaultValue="actual">
-                    <TabsList className="mb-4">
-                      <TabsTrigger value="actual">Período Actual</TabsTrigger>
-                      <TabsTrigger value="crear">Crear Período</TabsTrigger>
-                    </TabsList>
-                    
-                    <TabsContent value="actual">
-                      <div className="space-y-4">
-                        <div className="rounded-lg border p-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h3 className="font-medium">2024-B</h3>
-                              <p className="text-sm text-muted-foreground">01/06/2024 - 30/09/2024</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm">Activo</span>
-                              <Switch defaultChecked />
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="rounded-lg border p-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h3 className="font-medium">2024-A</h3>
-                              <p className="text-sm text-muted-foreground">01/01/2024 - 31/05/2024</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm">Activo</span>
-                              <Switch />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </TabsContent>
-                    
-                    <TabsContent value="crear">
-                      <form className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="periodo-nombre">Nombre del Período</Label>
-                          <Input id="periodo-nombre" placeholder="Ej: 2024-C" />
-                        </div>
-                        
-                        <div className="grid gap-4 sm:grid-cols-2">
-                          <div className="space-y-2">
-                            <Label htmlFor="fecha-inicio">Fecha de Inicio</Label>
-                            <Input id="fecha-inicio" type="date" />
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor="fecha-fin">Fecha de Fin</Label>
-                            <Input id="fecha-fin" type="date" />
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <Switch id="estado-activo" />
-                          <Label htmlFor="estado-activo">Período Activo</Label>
-                        </div>
-                        
-                        <Button type="submit">Crear Período</Button>
-                      </form>
-                    </TabsContent>
-                  </Tabs>
-                </CardContent>
-              </Card>
-            )}
           </div>
         </main>
       </div>

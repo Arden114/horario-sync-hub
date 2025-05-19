@@ -1,95 +1,109 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { authApi } from '../lib/api';
+import { toast } from 'sonner';
 
-type Role = 'coordinador' | 'docente';
-
+// Define the User interface based on your API response
 interface User {
   id: string;
   nombre: string;
-  usuario: string;
-  especialidad?: string;
-  rol: Role;
+  correo: string;
+  rol: 'coordinador' | 'docente';
 }
 
+// Define the context interface
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (usuario: string, password: string, rol: Role) => Promise<boolean>;
+  isLoading: boolean;
+  login: (username: string, password: string, rol: 'coordinador' | 'docente') => Promise<boolean>;
   logout: () => void;
 }
 
-// Mock de usuarios para demo
-const MOCK_USERS = [
-  {
-    id: '1',
-    nombre: 'Admin Usuario',
-    usuario: 'admin',
-    password: 'admin123',
-    rol: 'coordinador' as Role
-  },
-  {
-    id: '2',
-    nombre: 'Juan Pérez',
-    usuario: 'jperez',
-    password: 'docente123',
-    especialidad: 'Matemáticas',
-    rol: 'docente' as Role
-  },
-  {
-    id: '3',
-    nombre: 'Usuario de Prueba',
-    usuario: 'test',
-    password: 'test123',
-    especialidad: 'Informática',
-    rol: 'docente' as Role
-  },
-  {
-    id: '4',
-    nombre: 'Coordinador de Prueba',
-    usuario: 'coordtest',
-    password: 'coord123',
-    rol: 'coordinador' as Role
-  }
-];
-
+// Create the context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Verificar si hay un usuario en localStorage al cargar
+  // Function to load the user profile from the API
+  const loadUserProfile = async () => {
+    try {
+      const userData = await authApi.getProfile();
+      setUser(userData);
+      return true;
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+      // Clear tokens on error
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Check if user is authenticated on component mount
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    const accessToken = localStorage.getItem('accessToken');
+    const refreshToken = localStorage.getItem('refreshToken');
+
+    if (accessToken && refreshToken) {
+      loadUserProfile();
+    } else {
+      setIsLoading(false);
     }
   }, []);
 
-  const login = async (usuario: string, password: string, rol: Role): Promise<boolean> => {
-    // Simular verificación de credenciales
-    const foundUser = MOCK_USERS.find(
-      u => u.usuario === usuario && u.password === password && u.rol === rol
-    );
-
-    if (foundUser) {
-      // Omitimos la contraseña del objeto de usuario
-      const { password: _, ...userWithoutPassword } = foundUser;
-      setUser(userWithoutPassword);
-      localStorage.setItem('user', JSON.stringify(userWithoutPassword));
-      return true;
+  // Login function
+  const login = async (username: string, password: string, rol: 'coordinador' | 'docente'): Promise<boolean> => {
+    setIsLoading(true);
+    
+    try {
+      const data = await authApi.login(username, password);
+      
+      // Verify that we have both tokens
+      if (data.access && data.refresh) {
+        localStorage.setItem('accessToken', data.access);
+        localStorage.setItem('refreshToken', data.refresh);
+        
+        // Get the user profile
+        const success = await loadUserProfile();
+        
+        // Make sure the user has the requested role
+        if (success && user && user.rol !== rol) {
+          toast.error(`No tiene permisos de ${rol}`);
+          logout();
+          return false;
+        }
+        
+        return success;
+      } else {
+        toast.error('Error de autenticación: tokens inválidos');
+        return false;
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error('Error de autenticación: credenciales inválidas');
+      return false;
+    } finally {
+      setIsLoading(false);
     }
-    return false;
   };
 
+  // Logout function
   const logout = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
     setUser(null);
-    localStorage.removeItem('user');
   };
 
   return (
     <AuthContext.Provider value={{
       user,
       isAuthenticated: !!user,
+      isLoading,
       login,
       logout
     }}>
@@ -98,10 +112,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
+// Custom hook to use the auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth debe ser usado dentro de un AuthProvider');
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };

@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ThemeToggle } from './ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { LogOut, User } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -16,6 +16,12 @@ import {
 
 export function Header() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   if (!user) return null;
 
@@ -24,7 +30,7 @@ export function Header() {
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-6 md:gap-8 lg:gap-10">
           <Link to="/" className="flex items-center gap-2">
-            <span className="hidden text-xl font-bold sm:inline-block">
+            <span className="hidden text-xl font-bold text-red-600 sm:inline-block">
               La Pontificia - Sistema de Horarios
             </span>
           </Link>
@@ -52,7 +58,7 @@ export function Header() {
                   Mi Perfil
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer text-red-500" onClick={logout}>
+              <DropdownMenuItem className="cursor-pointer text-red-500" onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Cerrar Sesión</span>
               </DropdownMenuItem>
