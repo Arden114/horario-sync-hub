@@ -1,4 +1,3 @@
-
 /**
  * API Utilities for the La Pontificia Horarios System
  * Handles connections to the Django REST Framework backend with JWT authentication
@@ -31,7 +30,7 @@ const refreshAccessToken = async (): Promise<string | null> => {
   if (!refreshToken) return null;
   
   try {
-    const response = await fetch(`${API_BASE_URL}/token/refresh/`, {
+    const response = await fetch(`${API_BASE_URL}/auth/token/refresh/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -116,7 +115,7 @@ export const fetchWithAuth = async (
  */
 export const authApi = {
   login: async (username: string, password: string) => {
-    const response = await fetch(`${API_BASE_URL}/token/`, {
+    const response = await fetch(`${API_BASE_URL}/auth/token/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -138,7 +137,7 @@ export const authApi = {
  */
 export const usuariosApi = {
   getAll: async () => {
-    const response = await fetchWithAuth('/usuarios/');
+    const response = await fetchWithAuth('/users/all/');
     return response.json();
   },
   
@@ -160,6 +159,182 @@ export const usuariosApi = {
   
   delete: async (id: string) => {
     const response = await fetchWithAuth(`/usuarios/${id}/`, {
+      method: 'DELETE',
+    });
+    return response;
+  },
+  
+  getGroups: async () => {
+    const response = await fetchWithAuth('/users/groups/');
+    return response.json();
+  },
+  
+  getDocentes: async () => {
+    const response = await fetchWithAuth('/users/docentes/');
+    return response.json();
+  }
+};
+
+/**
+ * API functions for academic module
+ */
+export const academicApi = {
+  getUnidadesAcademicas: async () => {
+    const response = await fetchWithAuth('/academic/unidades-academicas/');
+    return response.json();
+  },
+  
+  getCarreras: async () => {
+    const response = await fetchWithAuth('/academic/carreras/');
+    return response.json();
+  },
+  
+  getMaterias: async () => {
+    const response = await fetchWithAuth('/academic/materias/');
+    return response.json();
+  },
+  
+  getCarreraMaterias: async (carreraId?: string) => {
+    const url = carreraId ? `/academic/carrera-materias/?carrera_id=${carreraId}` : '/academic/carrera-materias/';
+    const response = await fetchWithAuth(url);
+    return response.json();
+  },
+  
+  getPeriodosAcademicos: async () => {
+    const response = await fetchWithAuth('/academic/periodos-academicos/');
+    return response.json();
+  },
+  
+  getTiposEspacio: async () => {
+    const response = await fetchWithAuth('/academic/tipos-espacio/');
+    return response.json();
+  },
+  
+  getEspacios: async () => {
+    const response = await fetchWithAuth('/academic/espacios/');
+    return response.json();
+  },
+  
+  getEspecialidades: async () => {
+    const response = await fetchWithAuth('/academic/especialidades/');
+    return response.json();
+  },
+  
+  getMateriaEspecialidades: async () => {
+    const response = await fetchWithAuth('/academic/materia-especialidades-requeridas/');
+    return response.json();
+  },
+  
+  // POST methods
+  createUnidadAcademica: async (data: any) => {
+    const response = await fetchWithAuth('/academic/unidades-academicas/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    return response.json();
+  },
+  
+  createCarrera: async (data: any) => {
+    const response = await fetchWithAuth('/academic/carreras/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    return response.json();
+  },
+  
+  createMateria: async (data: any) => {
+    const response = await fetchWithAuth('/academic/materias/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    return response.json();
+  },
+  
+  // Update methods for academic entities
+  updateUnidadAcademica: async (id: string, data: any) => {
+    const response = await fetchWithAuth(`/academic/unidades-academicas/${id}/`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    return response.json();
+  },
+  
+  // Delete methods
+  deleteUnidadAcademica: async (id: string) => {
+    const response = await fetchWithAuth(`/academic/unidades-academicas/${id}/`, {
+      method: 'DELETE',
+    });
+    return response;
+  }
+};
+
+/**
+ * API functions for scheduling module
+ */
+export const schedulingApi = {
+  getGrupos: async () => {
+    const response = await fetchWithAuth('/scheduling/grupos/');
+    return response.json();
+  },
+  
+  getBloquesHorarios: async () => {
+    const response = await fetchWithAuth('/scheduling/bloques-horarios/');
+    return response.json();
+  },
+  
+  getDisponibilidadDocentes: async (docenteId?: string) => {
+    const url = docenteId ? `/scheduling/disponibilidad-docentes/?docente_id=${docenteId}` : '/scheduling/disponibilidad-docentes/';
+    const response = await fetchWithAuth(url);
+    return response.json();
+  },
+  
+  getHorariosAsignados: async () => {
+    const response = await fetchWithAuth('/scheduling/horarios-asignados/');
+    return response.json();
+  },
+  
+  getRestricciones: async () => {
+    const response = await fetchWithAuth('/scheduling/configuracion-restricciones/');
+    return response.json();
+  },
+  
+  // POST methods
+  createGrupo: async (data: any) => {
+    const response = await fetchWithAuth('/scheduling/grupos/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    return response.json();
+  },
+  
+  createDisponibilidadDocente: async (data: any) => {
+    const response = await fetchWithAuth('/scheduling/disponibilidad-docentes/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    return response.json();
+  },
+  
+  createHorarioAsignado: async (data: any) => {
+    const response = await fetchWithAuth('/scheduling/horarios-asignados/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    return response.json();
+  },
+  
+  // Update methods
+  updateDisponibilidadDocente: async (id: string, data: any) => {
+    const response = await fetchWithAuth(`/scheduling/disponibilidad-docentes/${id}/`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    return response.json();
+  },
+  
+  // Delete methods
+  deleteHorarioAsignado: async (id: string) => {
+    const response = await fetchWithAuth(`/scheduling/horarios-asignados/${id}/`, {
       method: 'DELETE',
     });
     return response;
